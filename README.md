@@ -90,7 +90,7 @@ Files equal to or larger than the configured threshold are displayed separately.
 Current threshold:
 
 ```text
-10 MB
+100 MB
 ```
 
 The threshold can be changed in `main.py`.
