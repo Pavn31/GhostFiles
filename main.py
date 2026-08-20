@@ -20,11 +20,12 @@ from PySide6.QtWidgets import (
     QFrame,
     QTabWidget,
 )
+
 from PySide6.QtCore import Qt
 
-# ─────────────────────────────────────
+# ============================================================
 # Configuration
-# ─────────────────────────────────────
+# ============================================================
 
 GHOST_EXTENSIONS = {
     ".tmp",
@@ -39,12 +40,13 @@ GHOST_KEYWORDS = {
     "old",
 }
 
-LARGE_FILE_SIZE = 10 * 1024 * 1024  # 100 MB
+# Files equal to or larger than 10 MB
+LARGE_FILE_SIZE = 10 * 1024 * 1024
 
 
-# ─────────────────────────────────────
+# ============================================================
 # Main Application
-# ─────────────────────────────────────
+# ============================================================
 
 
 class GhostFiles(QMainWindow):
@@ -58,6 +60,10 @@ class GhostFiles(QMainWindow):
         # Currently scanned folder
         self.current_folder = None
 
+        # --------------------------------------------------------
+        # Central widget
+        # --------------------------------------------------------
+
         central = QWidget()
         self.setCentralWidget(central)
 
@@ -65,9 +71,9 @@ class GhostFiles(QMainWindow):
         main_layout.setContentsMargins(45, 35, 45, 35)
         main_layout.setSpacing(20)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Header
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         header = QHBoxLayout()
 
@@ -95,9 +101,9 @@ class GhostFiles(QMainWindow):
 
         main_layout.addLayout(header)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Status
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         self.status = QLabel("Select a folder to scan")
         self.status.setStyleSheet("""
@@ -109,9 +115,9 @@ class GhostFiles(QMainWindow):
 
         main_layout.addWidget(self.status)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Health
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         self.health = QLabel("—")
         self.health.setAlignment(Qt.AlignCenter)
@@ -136,9 +142,9 @@ class GhostFiles(QMainWindow):
         main_layout.addWidget(self.health)
         main_layout.addWidget(health_label)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Statistics
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         stats = QHBoxLayout()
         stats.setSpacing(15)
@@ -155,9 +161,9 @@ class GhostFiles(QMainWindow):
 
         main_layout.addLayout(stats)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Results tabs
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         self.tabs = QTabWidget()
 
@@ -171,9 +177,9 @@ class GhostFiles(QMainWindow):
 
         main_layout.addWidget(self.tabs)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Theme
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         self.setStyleSheet("""
             QMainWindow {
@@ -215,10 +221,12 @@ class GhostFiles(QMainWindow):
             }
         """)
 
-    # ─────────────────────────────────
-    # UI helpers
-    # ─────────────────────────────────
+    # ============================================================
+    # UI Helpers
+    # ============================================================
+
     def format_size(self, size):
+
         if size < 1024:
             return f"{size} B"
 
@@ -305,9 +313,9 @@ class GhostFiles(QMainWindow):
 
         return widget
 
-    # ─────────────────────────────────
-    # Move file to Trash
-    # ─────────────────────────────────
+    # ============================================================
+    # Move File To Trash
+    # ============================================================
 
     def move_to_trash(self, file_path):
 
@@ -317,67 +325,122 @@ class GhostFiles(QMainWindow):
             return False
 
         try:
-            # Preferred Linux method.
-            # This creates the correct Trash metadata as well.
-            subprocess.run(
-                ["gio", "trash", str(file_path)],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
 
-            return True
+            # ----------------------------------------------------
+            # Windows
+            # ----------------------------------------------------
 
-        except FileNotFoundError:
-            # gio is not installed.
-            # Fall back to the standard user Trash directory.
-            try:
-                trash_dir = Path.home() / ".local" / "share" / "Trash"
-                files_dir = trash_dir / "files"
-                info_dir = trash_dir / "info"
+            if sys.platform.startswith("win"):
 
-                files_dir.mkdir(parents=True, exist_ok=True)
-                info_dir.mkdir(parents=True, exist_ok=True)
+                try:
+                    from send2trash import send2trash
 
-                destination = files_dir / file_path.name
+                    send2trash(str(file_path))
 
-                if destination.exists():
-                    destination = (
-                        files_dir
-                        / f"{file_path.stem}_{file_path.stat().st_mtime_ns}{file_path.suffix}"
+                    return True
+
+                except ImportError:
+                    return False
+
+                except OSError:
+                    return False
+
+            # ----------------------------------------------------
+            # Linux
+            # ----------------------------------------------------
+
+            elif sys.platform.startswith("linux"):
+
+                # Preferred Linux method.
+                # gio creates the correct Trash metadata.
+
+                try:
+
+                    subprocess.run(
+                        [
+                            "gio",
+                            "trash",
+                            str(file_path),
+                        ],
+                        check=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.PIPE,
+                        text=True,
                     )
 
-                shutil.move(str(file_path), str(destination))
+                    return True
 
-                return True
+                except FileNotFoundError:
 
-            except (OSError, shutil.Error):
+                    # gio is not installed.
+                    # Fall back to the standard user Trash directory.
+
+                    try:
+
+                        trash_dir = Path.home() / ".local" / "share" / "Trash"
+
+                        files_dir = trash_dir / "files"
+                        info_dir = trash_dir / "info"
+
+                        files_dir.mkdir(
+                            parents=True,
+                            exist_ok=True,
+                        )
+
+                        info_dir.mkdir(
+                            parents=True,
+                            exist_ok=True,
+                        )
+
+                        destination = files_dir / file_path.name
+
+                        if destination.exists():
+
+                            destination = files_dir / (
+                                f"{file_path.stem}_"
+                                f"{file_path.stat().st_mtime_ns}"
+                                f"{file_path.suffix}"
+                            )
+
+                        shutil.move(
+                            str(file_path),
+                            str(destination),
+                        )
+
+                        return True
+
+                    except (OSError, shutil.Error):
+                        return False
+
+                except subprocess.CalledProcessError:
+                    return False
+
+                except (OSError, shutil.Error):
+                    return False
+
+            # ----------------------------------------------------
+            # Unsupported operating system
+            # ----------------------------------------------------
+
+            else:
                 return False
 
-        except subprocess.CalledProcessError:
+        except Exception:
             return False
 
-        except (OSError, shutil.Error):
-            return False
-
-    # ─────────────────────────────────
-    # Move selected file
-    # ─────────────────────────────────
+    # ============================================================
+    # Move Selected File
+    # ============================================================
 
     def trash_selected(self):
 
         current_tab = self.tabs.currentWidget()
-        selected = current_tab.selectedItems()
-
-        if current_tab == self.duplicate_list:
-            selected = self.duplicate_list.selectedItems()
-        elif current_tab == self.large_list:
-            selected = self.large_list.selectedItems()
 
         if current_tab is None:
             self.status.setText("No tab selected")
             return
+
+        selected = current_tab.selectedItems()
 
         if not selected:
             self.status.setText("Select a file first")
@@ -406,33 +469,42 @@ class GhostFiles(QMainWindow):
             item.setData(Qt.UserRole, None)
 
             self.status.setText(f"Moved to Trash: {file_path.name}")
+
             # Refresh scan if possible.
             if self.current_folder:
-                self.scan_folder(self.current_folder, preserve_status=True)
+                self.scan_folder(
+                    self.current_folder,
+                    preserve_status=True,
+                )
 
-            else:
-                self.status.setText(f"Could not move to Trash: {file_path.name}")
+        else:
 
-    # ─────────────────────────────────
-    # Folder selection
-    # ─────────────────────────────────
+            self.status.setText(f"Could not move to Trash: {file_path.name}")
+
+    # ============================================================
+    # Folder Selection
+    # ============================================================
 
     def select_folder(self):
 
-        folder = QFileDialog.getExistingDirectory(self, "Select Folder")
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "Select Folder",
+        )
 
         if folder:
             self.scan_folder(folder)
 
-    # ─────────────────────────────────
-    # File hashing
-    # ─────────────────────────────────
+    # ============================================================
+    # File Hashing
+    # ============================================================
 
     def file_hash(self, file_path):
 
         sha256 = hashlib.sha256()
 
         try:
+
             with open(file_path, "rb") as file:
 
                 while chunk := file.read(1024 * 1024):
@@ -443,9 +515,9 @@ class GhostFiles(QMainWindow):
         except (PermissionError, OSError):
             return None
 
-    # ─────────────────────────────────
-    # Main scanner
-    # ─────────────────────────────────
+    # ============================================================
+    # Main Scanner
+    # ============================================================
 
     def scan_folder(self, folder, preserve_status=False):
 
@@ -459,9 +531,9 @@ class GhostFiles(QMainWindow):
 
         size_groups = defaultdict(list)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Scan files
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         for item in path.rglob("*"):
 
@@ -479,7 +551,9 @@ class GhostFiles(QMainWindow):
                 name = item.name.lower()
                 extension = item.suffix.lower()
 
+                # ------------------------------------------------
                 # Ghost detection
+                # ------------------------------------------------
 
                 if size == 0:
 
@@ -493,7 +567,9 @@ class GhostFiles(QMainWindow):
 
                     ghost_files.append((item, "SUSPICIOUS"))
 
+                # ------------------------------------------------
                 # Large files
+                # ------------------------------------------------
 
                 if size >= LARGE_FILE_SIZE:
 
@@ -502,9 +578,9 @@ class GhostFiles(QMainWindow):
             except (PermissionError, OSError):
                 continue
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Duplicate detection
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         duplicate_groups = []
 
@@ -527,18 +603,19 @@ class GhostFiles(QMainWindow):
                 if len(group) > 1:
                     duplicate_groups.append(group)
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Counts
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         duplicate_count = sum(len(group) - 1 for group in duplicate_groups)
+
         duplicate_wasted_space = sum(
             (len(group) - 1) * group[0].stat().st_size for group in duplicate_groups
         )
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Health score
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         problems = len(ghost_files) + duplicate_count + len(large_files)
 
@@ -550,11 +627,14 @@ class GhostFiles(QMainWindow):
 
             penalty = (problems / total_files) * 100
 
-            health_score = max(0, round(100 - penalty))
+            health_score = max(
+                0,
+                round(100 - penalty),
+            )
 
-        # ─────────────────────────────
+        # --------------------------------------------------------
         # Update statistics
-        # ─────────────────────────────
+        # --------------------------------------------------------
 
         self.files_card.value_label.setText(str(total_files))
 
@@ -567,15 +647,16 @@ class GhostFiles(QMainWindow):
         self.health.setText(str(health_score))
 
         if not preserve_status:
+
             self.status.setText(
                 f"Scanned: {path.name}   •   "
                 f"Duplicate waste: "
                 f"{self.format_size(duplicate_wasted_space)}"
             )
 
-        # ─────────────────────────────
-        # Ghost results
-        # ─────────────────────────────
+        # ========================================================
+        # Ghost Results
+        # ========================================================
 
         self.ghost_list.clear()
 
@@ -590,13 +671,16 @@ class GhostFiles(QMainWindow):
                 item = QListWidgetItem(f"[{reason}]  {file}")
 
                 # Store real path internally.
-                item.setData(Qt.UserRole, str(file))
+                item.setData(
+                    Qt.UserRole,
+                    str(file),
+                )
 
                 self.ghost_list.addItem(item)
 
-        # ─────────────────────────────
-        # Duplicate results
-        # ─────────────────────────────
+        # ========================================================
+        # Duplicate Results
+        # ========================================================
 
         self.duplicate_list.clear()
 
@@ -606,14 +690,23 @@ class GhostFiles(QMainWindow):
 
         else:
 
-            for index, group in enumerate(duplicate_groups, start=1):
+            for index, group in enumerate(
+                duplicate_groups,
+                start=1,
+            ):
 
                 heading = QListWidgetItem(
-                    f"GROUP {index}  •  {len(group)} identical files  •  "
-                    f"{self.format_size((len(group) - 1) * group[0].stat().st_size)} wasted"
+                    f"GROUP {index}  •  "
+                    f"{len(group)} identical files  •  "
+                    f"{self.format_size((len(group) - 1) * group[0].stat().st_size)} "
+                    f"wasted"
                 )
+
                 # No file path on heading.
-                heading.setData(Qt.UserRole, None)
+                heading.setData(
+                    Qt.UserRole,
+                    None,
+                )
 
                 self.duplicate_list.addItem(heading)
 
@@ -621,23 +714,34 @@ class GhostFiles(QMainWindow):
 
                     item = QListWidgetItem(f"    {file}")
 
-                    item.setData(Qt.UserRole, str(file))
+                    item.setData(
+                        Qt.UserRole,
+                        str(file),
+                    )
+
                     item.setFlags(item.flags() | Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+
                     self.duplicate_list.addItem(item)
 
                 spacer = QListWidgetItem("")
 
-                spacer.setData(Qt.UserRole, None)
+                spacer.setData(
+                    Qt.UserRole,
+                    None,
+                )
 
                 self.duplicate_list.addItem(spacer)
 
-        # ─────────────────────────────
-        # Large files
-        # ─────────────────────────────
+        # ========================================================
+        # Large Files
+        # ========================================================
 
         self.large_list.clear()
 
-        large_files.sort(key=lambda x: x[1], reverse=True)
+        large_files.sort(
+            key=lambda x: x[1],
+            reverse=True,
+        )
 
         if not large_files:
 
@@ -651,14 +755,17 @@ class GhostFiles(QMainWindow):
 
                 item = QListWidgetItem(f"{size_mb:.1f} MB   {file}")
 
-                item.setData(Qt.UserRole, str(file))
+                item.setData(
+                    Qt.UserRole,
+                    str(file),
+                )
 
                 self.large_list.addItem(item)
 
 
-# ─────────────────────────────────────
+# ============================================================
 # Application
-# ─────────────────────────────────────
+# ============================================================
 
 app = QApplication(sys.argv)
 
