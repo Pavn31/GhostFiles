@@ -154,19 +154,6 @@ The application includes:
 
 ### Main Dashboard
 
-*Add screenshot here.*
-
-### Ghost Detection
-
-*Add screenshot here.*
-
-### Duplicate Detection
-
-*Add screenshot here.*
-
-### Large File Detection
-
-*Add screenshot here.*
 
 ---
 
