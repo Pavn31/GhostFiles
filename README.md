@@ -91,7 +91,7 @@ Ghost Files identifies files equal to or larger than the configured large-file t
 Current threshold:
 
 ```text
-10 MB
+100 MB
 ```
 
 The threshold can be changed in `main.py`.
@@ -555,7 +555,7 @@ are displayed in the Large Files section.
 The current threshold is:
 
 ```text
-10 MB
+100 MB
 ```
 
 ---
