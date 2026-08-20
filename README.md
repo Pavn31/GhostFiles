@@ -36,6 +36,23 @@ Selected files are moved to the operating system's **Trash / Recycle Bin** inste
 
 ---
 
+
+## Releases
+
+| Version | Status | Release |
+|---|---|---|
+| **v1.0.0** | Latest | [View Release](https://github.com/Pavn31/GhostFiles/releases/tag/v1.0.0) |
+
+### Latest Release
+
+**Ghost Files v1.0.0**
+
+- Linux build: `GhostFiles-Linux.tar.gz`
+- Windows build: `GhostFiles-Windows.zip`
+
+[Download the latest release](https://github.com/Pavn31/GhostFiles/releases/latest)
+
+
 ## Features
 
 ### Ghost File Detection
