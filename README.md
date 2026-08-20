@@ -173,7 +173,7 @@ The application includes:
 <p align="center">
   <img src="assets/Main-Dashboard.png" alt="Ghost Files Main Dashboard" width="900">
 </p>
----
+
 
 ## Download
 
