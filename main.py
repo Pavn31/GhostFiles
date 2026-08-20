@@ -41,7 +41,7 @@ GHOST_KEYWORDS = {
 }
 
 # Files equal to or larger than 10 MB
-LARGE_FILE_SIZE = 10 * 1024 * 1024
+LARGE_FILE_SIZE = 100 * 1024 * 1024
 
 
 # ============================================================
