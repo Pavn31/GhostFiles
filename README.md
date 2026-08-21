@@ -50,7 +50,6 @@ Selected files are moved to the operating system's **Trash / Recycle Bin** inste
 - Linux build: `GhostFiles-Linux.tar.gz`
 - Windows build: `GhostFiles-Windows.zip`
 
-[Download the latest release](https://github.com/Pavn31/GhostFiles/releases/latest)
 
 
 ## Features
