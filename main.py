@@ -9,6 +9,7 @@ import platform
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -39,7 +40,7 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtGui import QPixmap, QIcon, QAction
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, QObject, Signal
 
 # ============================================================
 # Paths / Config / History
@@ -453,6 +454,250 @@ def reveal_in_file_manager(path):
 
 
 # ============================================================
+# Background scan worker
+#
+# Everything CPU/IO heavy (walking the tree, stat()-ing files,
+# hashing for duplicate detection) lives here so it can run on a
+# QThread instead of the GUI thread. This class never touches any
+# QWidget — it only computes data and emits it via signals.
+# ============================================================
+
+class ScanWorker(QObject):
+    finished = Signal(dict)
+    error = Signal(str)
+
+    def __init__(self, folder, config, recursive):
+        super().__init__()
+        self.folder = folder
+        self.config = config
+        self.recursive = recursive
+
+    def is_excluded(self, name, patterns):
+        return any(fnmatch.fnmatch(name, pattern) or name == pattern for pattern in patterns)
+
+    def walk(self, root, exclusions, recursive):
+        if recursive:
+            for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+                dirnames[:] = [d for d in dirnames if not self.is_excluded(d, exclusions)]
+                yield dirpath, dirnames, filenames
+        else:
+            dirpath = str(root)
+            try:
+                entries = list(Path(root).iterdir())
+            except OSError:
+                entries = []
+            dirnames = [e.name for e in entries if e.is_dir() and not self.is_excluded(e.name, exclusions)]
+            filenames = [e.name for e in entries if not e.is_dir()]
+            yield dirpath, dirnames, filenames
+
+    # ------------------------------------------------------------
+    # Fast duplicate hashing
+    #
+    # Files are already grouped by exact size, so we first compare a
+    # small signature made from the beginning/end of each file. Only
+    # files that survive that cheap test are fully hashed. Hashing is
+    # also parallelised because it is mostly disk I/O.
+    # ------------------------------------------------------------
+
+    def quick_hash(self, file_path, sample_size=4096):
+        """Cheap duplicate pre-check. Only read a tiny head/tail sample."""
+        try:
+            size = file_path.stat().st_size
+            with open(file_path, "rb") as file:
+                if size <= sample_size * 2:
+                    data = file.read()
+                else:
+                    first = file.read(sample_size)
+                    file.seek(-sample_size, os.SEEK_END)
+                    last = file.read(sample_size)
+                    data = first + last
+
+            digest = hashlib.blake2b(digest_size=16)
+            digest.update(data)
+            digest.update(size.to_bytes(8, "little", signed=False))
+            return digest.digest()
+        except (PermissionError, OSError, OverflowError):
+            return None
+
+    def file_hash(self, file_path):
+        try:
+            digest = hashlib.blake2b(digest_size=32)
+            with open(file_path, "rb") as file:
+                while chunk := file.read(4 * 1024 * 1024):
+                    digest.update(chunk)
+            return digest.digest()
+        except (PermissionError, OSError):
+            return None
+
+    def find_duplicate_groups(self, size_groups):
+        """Find exact duplicates with minimal disk I/O and no per-group thread pools."""
+        workers = min(8, max(2, os.cpu_count() or 2))
+
+        # Only files sharing an exact size can possibly be duplicates.
+        candidates = [
+            file
+            for files in size_groups.values() if len(files) > 1
+            for file in files
+        ]
+        if not candidates:
+            return []
+
+        # Stage 1: tiny head/tail signature.
+        quick_groups = defaultdict(list)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for file, signature in zip(candidates, pool.map(self.quick_hash, candidates, chunksize=32)):
+                if signature is not None:
+                    quick_groups[signature].append(file)
+
+        # Stage 2: full hash only for actual quick-signature collisions.
+        full_candidates = [
+            file
+            for group in quick_groups.values() if len(group) > 1
+            for file in group
+        ]
+        if not full_candidates:
+            return []
+
+        full_groups = defaultdict(list)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for file, signature in zip(
+                full_candidates,
+                pool.map(self.file_hash, full_candidates, chunksize=4),
+            ):
+                if signature is not None:
+                    full_groups[signature].append(file)
+
+        return [group for group in full_groups.values() if len(group) > 1]
+
+    def run(self):
+        try:
+            path = Path(self.folder)
+            cfg = self.config
+            exclusions = cfg.get("exclusions", [])
+            recursive = self.recursive
+            large_file_bytes = int(cfg.get("large_file_mb", 10)) * 1024 * 1024
+            ghost_extensions = set(e.lower() for e in cfg.get("ghost_extensions", []))
+            ghost_keywords = set(k.lower() for k in cfg.get("ghost_keywords", []))
+            cache_dir_names = set(cfg.get("cache_dir_names", []))
+            log_extensions = set(e.lower() for e in cfg.get("log_extensions", []))
+
+            total_files = 0
+            total_size = 0
+            ghost_files = []
+            large_files = []
+            empty_dirs = []
+            size_groups = defaultdict(list)
+            extension_stats = defaultdict(lambda: {"count": 0, "size": 0})
+
+            for dirpath, dirnames, filenames in self.walk(path, exclusions, recursive):
+                dirpath_p = Path(dirpath)
+
+                if cfg.get("detect_empty_dirs", True) and not dirnames and not filenames:
+                    if dirpath_p != path:
+                        empty_dirs.append(dirpath_p)
+
+                if cfg.get("detect_cache", True):
+                    for d in dirnames:
+                        if d in cache_dir_names:
+                            ghost_files.append((dirpath_p / d, "CACHE"))
+
+                for filename in filenames:
+                    item = dirpath_p / filename
+
+                    try:
+                        if item.is_symlink() and not item.exists():
+                            if cfg.get("detect_broken_links", True):
+                                ghost_files.append((item, "BROKEN_LINK"))
+                            continue
+
+                        if not item.is_file():
+                            continue
+
+                        stat = item.stat()
+                        size = stat.st_size
+
+                        total_files += 1
+                        total_size += size
+                        size_groups[size].append(item)
+
+                        ext = item.suffix.lower()
+                        extension_stats[ext or "(no extension)"]["count"] += 1
+                        extension_stats[ext or "(no extension)"]["size"] += size
+
+                        name = item.name.lower()
+
+                        if size == 0:
+                            ghost_files.append((item, "EMPTY"))
+                        elif ext in ghost_extensions:
+                            ghost_files.append((item, "TEMP"))
+                        elif cfg.get("detect_logs", True) and ext in log_extensions:
+                            ghost_files.append((item, "LOG"))
+                        elif any(keyword in name for keyword in ghost_keywords):
+                            ghost_files.append((item, "SUSPICIOUS"))
+
+                        if size >= large_file_bytes:
+                            large_files.append((item, size))
+
+                    except (PermissionError, OSError):
+                        continue
+
+            # --------------------------------------------------------
+            # Duplicate detection
+            # --------------------------------------------------------
+
+            duplicate_groups = self.find_duplicate_groups(size_groups)
+
+            duplicate_count = sum(len(group) - 1 for group in duplicate_groups)
+            duplicate_wasted_space = 0
+            for group in duplicate_groups:
+                try:
+                    duplicate_wasted_space += (len(group) - 1) * group[0].stat().st_size
+                except OSError:
+                    pass
+
+            # --------------------------------------------------------
+            # Health score (weighted, ratio-normalised)
+            # --------------------------------------------------------
+
+            w_ghost = cfg.get("health_weight_ghost", 1.0)
+            w_dup = cfg.get("health_weight_duplicate", 1.5)
+            w_large = cfg.get("health_weight_large", 0.5)
+            total_weight = max(w_ghost + w_dup + w_large, 0.0001)
+
+            if total_files == 0:
+                health_score = 100
+            else:
+                ghost_ratio = len(ghost_files) / total_files
+                dup_ratio = (duplicate_wasted_space / total_size) if total_size else 0
+                large_ratio = len(large_files) / total_files
+
+                penalty = 100 * (
+                    (w_ghost * ghost_ratio + w_dup * dup_ratio + w_large * large_ratio) / total_weight
+                )
+                health_score = max(0, round(100 - penalty))
+
+            results = {
+                "folder": str(path),
+                "recursive": recursive,
+                "ghost_files": ghost_files,
+                "duplicate_groups": duplicate_groups,
+                "large_files": large_files,
+                "empty_dirs": empty_dirs,
+                "extension_stats": dict(extension_stats),
+                "total_size": total_size,
+                "total_files": total_files,
+                "duplicate_wasted_space": duplicate_wasted_space,
+                "duplicate_count": duplicate_count,
+                "health_score": health_score,
+            }
+
+            self.finished.emit(results)
+
+        except Exception as exc:  # noqa: BLE001 - surface any unexpected error to the UI
+            self.error.emit(str(exc))
+
+
+# ============================================================
 # Main Application
 # ============================================================
 
@@ -464,6 +709,11 @@ class GhostFiles(QMainWindow):
 
         self.config = load_config()
         self.history = load_history()
+
+        # Background scan state
+        self._scan_thread = None
+        self._scan_worker = None
+        self._preserve_status = False
 
         self.setWindowTitle("Ghost Files")
         self.resize(1300, 800)
@@ -664,6 +914,7 @@ class GhostFiles(QMainWindow):
             }
             QPushButton:hover { background-color: #242430; }
             QPushButton:pressed { background-color: #30303d; }
+            QPushButton:disabled { color: #666666; border-color: #333340; }
             QTabWidget::pane { border: 1px solid #292934; border-radius: 10px; background-color: #111117; }
             QTabBar::tab { background-color: #111117; color: #777777; padding: 10px 22px; border: none; }
             QTabBar::tab:selected { color: white; }
@@ -943,200 +1194,84 @@ class GhostFiles(QMainWindow):
             self.status.setText("That folder is no longer available")
 
     # ============================================================
-    # File Hashing
-    # ============================================================
-
-    def file_hash(self, file_path):
-        sha256 = hashlib.sha256()
-        try:
-            with open(file_path, "rb") as file:
-                while chunk := file.read(1024 * 1024):
-                    sha256.update(chunk)
-            return sha256.hexdigest()
-        except (PermissionError, OSError):
-            return None
-
-    # ============================================================
-    # Walking helper (respects exclusions + recursive flag)
-    # ============================================================
-
-    def is_excluded(self, name, patterns):
-        return any(fnmatch.fnmatch(name, pattern) or name == pattern for pattern in patterns)
-
-    def walk(self, root, exclusions, recursive):
-        """Yields (dirpath, dirnames, filenames) honouring exclusions/recursion,
-        and also reports broken symlinks + empty directories."""
-        if recursive:
-            for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
-                dirnames[:] = [d for d in dirnames if not self.is_excluded(d, exclusions)]
-                yield dirpath, dirnames, filenames
-        else:
-            dirpath = str(root)
-            try:
-                entries = list(Path(root).iterdir())
-            except OSError:
-                entries = []
-            dirnames = [e.name for e in entries if e.is_dir() and not self.is_excluded(e.name, exclusions)]
-            filenames = [e.name for e in entries if not e.is_dir()]
-            yield dirpath, dirnames, filenames
-
-    # ============================================================
-    # Main Scanner
+    # Main Scanner — launches a background QThread so the GUI
+    # thread never blocks on the disk walk / hashing.
     # ============================================================
 
     def scan_folder(self, folder, preserve_status=False):
+        if self._scan_thread is not None and self._scan_thread.isRunning():
+            self.status.setText("A scan is already in progress…")
+            return
+
         path = Path(folder)
         self.current_folder = path
-
-        cfg = self.config
-        exclusions = cfg.get("exclusions", [])
         recursive = self.recursive_check.isChecked()
-        large_file_bytes = int(cfg.get("large_file_mb", 10)) * 1024 * 1024
-        ghost_extensions = set(e.lower() for e in cfg.get("ghost_extensions", []))
-        ghost_keywords = set(k.lower() for k in cfg.get("ghost_keywords", []))
-        cache_dir_names = set(cfg.get("cache_dir_names", []))
-        log_extensions = set(e.lower() for e in cfg.get("log_extensions", []))
 
-        total_files = 0
-        total_size = 0
-        ghost_files = []
-        large_files = []
-        empty_dirs = []
-        size_groups = defaultdict(list)
-        extension_stats = defaultdict(lambda: {"count": 0, "size": 0})
+        self._preserve_status = preserve_status
+        self.scan_button.setEnabled(False)
+        self.scan_button.setText("SCANNING…")
+        if not preserve_status:
+            self.status.setText(f"Scanning {path.name}…")
 
-        for dirpath, dirnames, filenames in self.walk(path, exclusions, recursive):
-            dirpath_p = Path(dirpath)
+        thread = QThread(self)
+        worker = ScanWorker(str(path), dict(self.config), recursive)
+        worker.moveToThread(thread)
 
-            # Empty directory detection (only meaningful in recursive mode's own listing)
-            if cfg.get("detect_empty_dirs", True) and not dirnames and not filenames:
-                if dirpath_p != path:
-                    empty_dirs.append(dirpath_p)
+        thread.started.connect(worker.run)
+        worker.finished.connect(self._on_scan_finished)
+        worker.error.connect(self._on_scan_error)
+        worker.finished.connect(thread.quit)
+        worker.error.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(self._clear_scan_thread_ref)
 
-            # Cache folder detection: flag the folder itself as a ghost-like entry
-            if cfg.get("detect_cache", True):
-                for d in list(dirnames):
-                    if d in cache_dir_names or self.is_excluded(d, [p for p in exclusions if p in cache_dir_names]):
-                        pass
-                for d in dirnames:
-                    if d in cache_dir_names:
-                        ghost_files.append((dirpath_p / d, "CACHE"))
+        self._scan_thread = thread
+        self._scan_worker = worker
+        thread.start()
 
-            for filename in filenames:
-                item = dirpath_p / filename
+    def _clear_scan_thread_ref(self):
+        self._scan_thread = None
+        self._scan_worker = None
 
-                try:
-                    if item.is_symlink() and not item.exists():
-                        if cfg.get("detect_broken_links", True):
-                            ghost_files.append((item, "BROKEN_LINK"))
-                        continue
+    def _on_scan_error(self, message):
+        self.status.setText(f"Scan failed: {message}")
+        self.scan_button.setEnabled(True)
+        self.scan_button.setText("SCAN FOLDER")
 
-                    if not item.is_file():
-                        continue
-
-                    stat = item.stat()
-                    size = stat.st_size
-
-                    total_files += 1
-                    total_size += size
-                    size_groups[size].append(item)
-
-                    ext = item.suffix.lower()
-                    extension_stats[ext or "(no extension)"]["count"] += 1
-                    extension_stats[ext or "(no extension)"]["size"] += size
-
-                    name = item.name.lower()
-
-                    if size == 0:
-                        ghost_files.append((item, "EMPTY"))
-                    elif ext in ghost_extensions:
-                        ghost_files.append((item, "TEMP"))
-                    elif cfg.get("detect_logs", True) and ext in log_extensions:
-                        ghost_files.append((item, "LOG"))
-                    elif any(keyword in name for keyword in ghost_keywords):
-                        ghost_files.append((item, "SUSPICIOUS"))
-
-                    if size >= large_file_bytes:
-                        large_files.append((item, size))
-
-                except (PermissionError, OSError):
-                    continue
-
-        # --------------------------------------------------------
-        # Duplicate detection
-        # --------------------------------------------------------
-
-        duplicate_groups = []
-        for files in size_groups.values():
-            if len(files) < 2:
-                continue
-            hashes = defaultdict(list)
-            for file in files:
-                h = self.file_hash(file)
-                if h:
-                    hashes[h].append(file)
-            for group in hashes.values():
-                if len(group) > 1:
-                    duplicate_groups.append(group)
-
-        duplicate_count = sum(len(group) - 1 for group in duplicate_groups)
-        duplicate_wasted_space = sum(
-            (len(group) - 1) * group[0].stat().st_size for group in duplicate_groups
-        )
-
-        # --------------------------------------------------------
-        # Improved health score (weighted, ratio-normalised)
-        # --------------------------------------------------------
-
-        w_ghost = cfg.get("health_weight_ghost", 1.0)
-        w_dup = cfg.get("health_weight_duplicate", 1.5)
-        w_large = cfg.get("health_weight_large", 0.5)
-        total_weight = max(w_ghost + w_dup + w_large, 0.0001)
-
-        if total_files == 0:
-            health_score = 100
-        else:
-            ghost_ratio = len(ghost_files) / total_files
-            dup_ratio = (duplicate_wasted_space / total_size) if total_size else 0
-            large_ratio = len(large_files) / total_files
-
-            penalty = 100 * (
-                (w_ghost * ghost_ratio + w_dup * dup_ratio + w_large * large_ratio) / total_weight
-            )
-            health_score = max(0, round(100 - penalty))
-
-        # --------------------------------------------------------
-        # Store results for filtering/sorting/rendering
-        # --------------------------------------------------------
+    def _on_scan_finished(self, results):
+        preserve_status = self._preserve_status
+        path = Path(results["folder"])
+        recursive = results["recursive"]
 
         self.scan_data = {
-            "ghost_files": ghost_files,
-            "duplicate_groups": duplicate_groups,
-            "large_files": large_files,
-            "empty_dirs": empty_dirs,
-            "extension_stats": dict(extension_stats),
-            "total_size": total_size,
-            "total_files": total_files,
-            "duplicate_wasted_space": duplicate_wasted_space,
-            "duplicate_count": duplicate_count,
+            "ghost_files": results["ghost_files"],
+            "duplicate_groups": results["duplicate_groups"],
+            "large_files": results["large_files"],
+            "empty_dirs": results["empty_dirs"],
+            "extension_stats": results["extension_stats"],
+            "total_size": results["total_size"],
+            "total_files": results["total_files"],
+            "duplicate_wasted_space": results["duplicate_wasted_space"],
+            "duplicate_count": results["duplicate_count"],
         }
 
         # --------------------------------------------------------
         # Update statistics cards
         # --------------------------------------------------------
 
-        self.files_card.value_label.setText(str(total_files))
-        self.ghost_card.value_label.setText(str(len(ghost_files)))
-        self.duplicate_card.value_label.setText(str(duplicate_count))
-        self.large_card.value_label.setText(str(len(large_files)))
-        self.empty_card.value_label.setText(str(len(empty_dirs)))
-        self.health.setText(str(health_score))
+        self.files_card.value_label.setText(str(results["total_files"]))
+        self.ghost_card.value_label.setText(str(len(results["ghost_files"])))
+        self.duplicate_card.value_label.setText(str(results["duplicate_count"]))
+        self.large_card.value_label.setText(str(len(results["large_files"])))
+        self.empty_card.value_label.setText(str(len(results["empty_dirs"])))
+        self.health.setText(str(results["health_score"]))
 
         if not preserve_status:
             self.status.setText(
                 f"Scanned: {path.name}   •   "
                 f"{'Recursive' if recursive else 'Top-level only'}   •   "
-                f"Duplicate waste: {format_size(duplicate_wasted_space)}"
+                f"Duplicate waste: {format_size(results['duplicate_wasted_space'])}"
             )
 
         self.render_all_tabs()
@@ -1148,17 +1283,20 @@ class GhostFiles(QMainWindow):
         self.history.append({
             "folder": str(path),
             "timestamp": datetime.now().isoformat(timespec="seconds"),
-            "total_files": total_files,
-            "ghosts": len(ghost_files),
-            "duplicates": duplicate_count,
-            "large_files": len(large_files),
-            "health_score": health_score,
+            "total_files": results["total_files"],
+            "ghosts": len(results["ghost_files"]),
+            "duplicates": results["duplicate_count"],
+            "large_files": len(results["large_files"]),
+            "health_score": results["health_score"],
         })
         save_history(self.history)
         self.render_history_tab()
 
-        if cfg.get("notify_on_scan", True) and not preserve_status:
-            notify("Ghost Files", f"Scan complete: health score {health_score} for {path.name}")
+        if self.config.get("notify_on_scan", True) and not preserve_status:
+            notify("Ghost Files", f"Scan complete: health score {results['health_score']} for {path.name}")
+
+        self.scan_button.setEnabled(True)
+        self.scan_button.setText("SCAN FOLDER")
 
     # ============================================================
     # Rendering (filter + sort applied here, no re-scan needed)
