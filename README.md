@@ -1,7 +1,7 @@
 # Ghost Files
 
 <p align="center">
-  <img src="assets/Ghost-Dashboard.png" alt="Ghost Files Dashboard" width="900">
+  <img src="assets/ghost-files.png" alt="Ghost Files Dashboard" width="900">
 </p>
 
 <p align="center">
