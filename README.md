@@ -101,7 +101,7 @@ The project is designed to remain simple, lightweight, and useful for everyday s
 ## Dashboard
 
 <p align="center">
-  <img src="assets/Ghost-Dashboard.png" alt="Ghost Files Dashboard" width="900">
+  <img src="assets/main-dashboard.png" alt="Ghost Files Dashboard" width="900">
 </p>
 
 The dashboard provides a quick overview of:
