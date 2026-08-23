@@ -1,538 +1,626 @@
-# Ghost Files
 
-<p align="center">
-  <img src="assets/ghost-files.png" width="180" alt="Ghost Files">
-</p>
+
+Pasted code(4).py
+Python
+i changed 10 to 100
+
+
+Pasted code(5).py
+Python
+
+Screenshot_20260823_102825.png
+
+Screenshot_20260823_103540.png
+scanning is slow lets make it fast
+
+
+Pasted code(6).py
+Python
+
+
+make changes and give me whole code
+
+
+Pasted code(7).py
+Python
+
+Screenshot_20260823_104630.png
+le bhai le large folders ko thoda time lagega
+
+Perfect. Ghost Files v1.1.0 is fully released.
+
+Assets are both attached:
+
+Linux: GhostFiles-Linux.tar.gz — 83.50 MiB
+
+Windows: GhostFiles-Windows.zip — 47.95 MiB
+
+And the release is live at:
+
+Ghost Files v1.1.0 on GitHub
+
+So the release pipeline is done: code → tag → GitHub release → Linux + Windows builds.
+
+
+
+Pasted markdown(4).md
+File
+update this README.md
+
+I need the actual README.md file. The uploaded file I found is a Prettier log, not the GhostFiles README.
+
+Please upload the current README.md here. Then I’ll update it directly for v1.1.0, including:
+
+v1.1.0 release section
+
+Linux + Windows downloads
+
+New detection/configuration features
+
+Configurable thresholds
+
+Scan exclusions
+
+Recursive scanning
+
+File preview
+
+Sorting/filtering
+
+Scan history
+
+Storage analytics
+
+Improved health scoring
+
+Linux/Windows integration
+
+Portable packaging
+
+Cleanup categories
+
+Current release links
+
+I won't rewrite unrelated sections or change your existing structure unnecessarily.
+
+
+
+Pasted markdown(5).md
+File
+here is the file
+
+Done. I updated the README for Ghost Files v1.1.0, including the new features, release assets, current status, roadmap cleanup, and updated project structure.
+
+Download the updated README.md 
+
+
+README.md
+Document
+
+
+Library
+/
+README.md
+
+
+Ghost Files
+<p align="center"> <img src="assets/ghost-files.png" width="180" alt="Ghost Files"> </p>
 
 <h3 align="center">Find the files your system forgot about.</h3>
 
-<p align="center">
-  A lightweight desktop utility for finding unnecessary, duplicate, temporary, and large files.
-</p>
+<p align="center"> A lightweight desktop utility for finding unnecessary, duplicate, temporary, and large files. </p>
 
-<p align="center">
-  <a href="https://github.com/Pavn31/GhostFiles/releases/latest">
-    <img src="https://img.shields.io/github/v/release/Pavn31/GhostFiles?style=flat-square" alt="Latest Release">
-  </a>
-  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20Windows-informational?style=flat-square" alt="Platform">
-  <img src="https://img.shields.io/badge/Python-3.x-blue?style=flat-square" alt="Python">
-  <img src="https://img.shields.io/badge/PySide6-Qt-green?style=flat-square" alt="PySide6">
-  <img src="https://img.shields.io/github/license/Pavn31/GhostFiles?style=flat-square" alt="License">
-</p>
+<p align="center"> <a href="https://github.com/Pavn31/GhostFiles/releases/latest"> <img src="https://img.shields.io/github/v/release/Pavn31/GhostFiles?style=flat-square" alt="Latest Release"> </a> <img src="https://img.shields.io/badge/platform-Linux%20%7C%20Windows-informational?style=flat-square" alt="Platform"> <img src="https://img.shields.io/badge/Python-3.x-blue?style=flat-square" alt="Python"> <img src="https://img.shields.io/badge/PySide6-Qt-green?style=flat-square" alt="PySide6"> <img src="https://img.shields.io/github/license/Pavn31/GhostFiles?style=flat-square" alt="License"> </p>
 
----
-
-## Overview
-
-**Ghost Files** is a lightweight cross-platform desktop application built with **Python and PySide6**.
+Overview
+Ghost Files is a lightweight cross-platform desktop application built with Python and PySide6.
 
 It scans a selected folder and identifies files that may be unnecessary, duplicated, temporary, or consuming significant storage.
 
 Ghost Files is designed around a simple idea:
 
-> Find unnecessary files without permanently deleting them.
+Find unnecessary files without permanently deleting them.
 
-Selected files are moved to the operating system's **Trash / Recycle Bin** instead of being permanently deleted.
+Selected files are moved to the operating system's Trash / Recycle Bin instead of being permanently deleted.
 
----
+Releases
+Version	Status	Release
+v1.1.0	Latest	View Release
+v1.0.0	Previous	View Release
+Latest Release — v1.1.0
+Ghost Files v1.1.0 includes improved scanning, configurable detection, better cleanup controls, file preview, sorting/filtering, scan history, storage analytics, improved health scoring, and stronger desktop integration.
 
+Release Assets
+Linux: GhostFiles-Linux.tar.gz
 
-## Releases
+Windows: GhostFiles-Windows.zip
 
-| Version | Status | Release |
-|---|---|---|
-| **v1.0.0** | Latest | [View Release](https://github.com/Pavn31/GhostFiles/releases/tag/v1.0.0) |
+Download Ghost Files v1.1.0
 
-### Latest Release
-
-**Ghost Files v1.0.0**
-
-- Linux build: `GhostFiles-Linux.tar.gz`
-- Windows build: `GhostFiles-Windows.zip`
-
-
-
-## Features
-
-### Ghost File Detection
-
+Features
+Ghost File Detection
 Ghost Files can identify potentially unnecessary files including:
 
-- Empty files
-- Temporary files
-- Backup files
-- Old files
-- Swap files
-- Suspicious filenames
+Empty files
+
+Temporary files
+
+Backup files
+
+Old files
+
+Swap files
+
+Suspicious filenames
+
+Log files
+
+Cache directories
+
+Broken symbolic links
 
 Supported extensions include:
 
-```text
 .tmp
 .bak
 .old
 .swp
-```
+.log
+Suspicious filename keywords can also be configured.
 
-Suspicious filename keywords include:
-
-```text
-backup
-temp
-old
-```
-
-### Duplicate Detection
-
+Duplicate Detection
 Ghost Files detects duplicate files using a two-stage process:
 
-1. Files are grouped by size.
-2. Files with matching sizes are verified using SHA-256 hashing.
+Files are grouped by size.
+
+Files with matching sizes are verified using SHA-256 hashing.
 
 Only files with matching hashes are considered duplicates.
 
 The application displays:
 
-- Duplicate groups
-- Number of identical files
-- File paths
-- Estimated wasted storage
+Duplicate groups
+
+Number of identical files
+
+File paths
+
+Estimated wasted storage
 
 This avoids unnecessarily hashing every file during a scan.
 
-### Large File Detection
-
+Large File Detection
 Ghost Files identifies files equal to or larger than the configured large-file threshold.
 
-Current threshold:
+The default threshold is:
 
-```text
 100 MB
-```
+The threshold can be changed from the application's settings.
 
-The threshold can be changed in `main.py`.
+Configurable Detection Thresholds
+Detection behaviour can be customized through the Settings panel, including:
 
-### Safe Trash / Recycle Bin
+Large-file threshold
 
-Ghost Files does not permanently delete selected files.
+Ghost-file extensions
 
-**Linux**
+Suspicious filename keywords
 
-Files are moved to the Linux Trash.
+Log-file extensions
 
-The application uses:
+Cache-folder names
 
-```text
-gio trash
-```
+Health-score weights
 
-when available, with a fallback to the standard user Trash directory.
+Scan Exclusions
+Users can exclude folders or file-name patterns from scans.
 
-**Windows**
+Examples:
 
-Files are moved to the Windows Recycle Bin using:
+.git
+node_modules
+__pycache__
+.venv
+*.iso
+build
+Recursive Scan Controls
+Ghost Files supports:
 
-```text
-send2trash
-```
+Top-level folder scanning
 
-This provides a safer cleanup workflow than directly deleting files.
+Recursive scanning through subdirectories
 
-### Project Health Score
+This can be configured from the application.
 
-Ghost Files calculates a simple health score based on detected:
+File Preview
+Supported text and image files can be previewed directly from the application before cleanup.
 
-- Ghost files
-- Duplicate files
-- Large files
+Text formats include common source-code, configuration, markup, and documentation files.
+
+Image formats include common PNG, JPEG, GIF, BMP, and WebP files.
+
+Sorting and Filtering
+Detected files can be organized using sorting and filtering controls, making large scan results easier to inspect.
+
+Scan History
+Ghost Files keeps a local history of previous scans, including:
+
+Scanned folder
+
+Scan timestamp
+
+Total files
+
+Detected ghost files
+
+Duplicate count
+
+Large-file count
+
+Health score
+
+History is stored locally under:
+
+~/.ghostfiles/
+Storage Analytics
+The application provides storage statistics including:
+
+Total scanned files
+
+Total storage usage
+
+Duplicate wasted space
+
+Large-file counts
+
+Extension-based storage statistics
+
+Cleanup Categories
+Detection categories can be enabled or disabled independently:
+
+Cache folders
+
+Log files
+
+Empty folders
+
+Broken symbolic links
+
+Additional cleanup categories can be added through future releases.
+
+Improved Project Health Score
+Ghost Files calculates a weighted health score based on:
+
+Ghost-file ratio
+
+Duplicate wasted-space ratio
+
+Large-file ratio
 
 The score provides a quick overview of the selected folder's cleanup state.
 
-### Interface
+Safe Trash / Recycle Bin
+Ghost Files does not permanently delete selected files.
 
+Linux
+
+Files are moved to the Linux Trash using:
+
+gio trash
+when available, with a fallback to the standard user Trash directory.
+
+Windows
+
+Files are moved to the Windows Recycle Bin using:
+
+send2trash
+This provides a safer cleanup workflow than directly deleting files.
+
+Desktop Integration
+Ghost Files includes platform-specific integration features.
+
+Linux
+
+Desktop entry installation
+
+Application menu integration
+
+Custom application icon
+
+Linux Trash integration
+
+Windows
+
+Desktop shortcut creation
+
+Windows Recycle Bin integration
+
+Portable executable packaging
+
+Interface
 The application includes:
 
-- Folder selection
-- Folder scanning
-- File statistics
-- Project health score
-- Ghost file detection
-- Duplicate detection
-- Large file detection
-- File selection
-- Safe Trash / Recycle Bin support
-- Automatic rescanning
-- Cross-platform support
+Folder selection
 
----
+Folder scanning
 
-## Screenshots
+File statistics
 
-### Main Dashboard
-<p align="center">
-  <img src="assets/Main-Dashboard.png" alt="Ghost Files Main Dashboard" width="900">
-</p>
+Project health score
 
+Ghost file detection
 
-## Download
+Duplicate detection
 
+Large file detection
+
+File preview
+
+Sorting and filtering
+
+Scan history
+
+Storage analytics
+
+File selection
+
+Safe Trash / Recycle Bin support
+
+Automatic rescanning
+
+Cross-platform support
+
+Screenshots
+Main Dashboard
+<p align="center"> <img src="assets/Main-Dashboard.png" alt="Ghost Files Main Dashboard" width="900"> </p>
+
+Download
 The latest stable release is available on GitHub.
 
-**Current version:** v1.0.0
+Current version: v1.1.0
 
-### Linux
-
+Linux
 Download:
 
-```text
 GhostFiles-Linux.tar.gz
-```
-
 Extract the archive:
 
-```bash
 tar -xzf GhostFiles-Linux.tar.gz
-```
-
 Enter the directory:
 
-```bash
 cd GhostFiles
-```
-
 Make the executable executable:
 
-```bash
 chmod +x GhostFiles
-```
-
 Run:
 
-```bash
 ./GhostFiles
-```
-
-The `_internal` directory must remain alongside the executable.
+The _internal directory must remain alongside the executable.
 
 Expected structure:
 
-```text
 GhostFiles/
 ├── GhostFiles
 └── _internal/
-```
-
-### Windows
-
+Windows
 Download:
 
-```text
 GhostFiles-Windows.zip
-```
-
 Extract the ZIP file.
 
-Open the extracted `GhostFiles` directory and run:
+Open the extracted GhostFiles directory and run:
 
-```text
 GhostFiles.exe
-```
-
-The `_internal` directory must remain alongside `GhostFiles.exe`.
+The _internal directory must remain alongside GhostFiles.exe.
 
 Expected structure:
 
-```text
 GhostFiles/
 ├── GhostFiles.exe
 └── _internal/
-```
-
----
-
-## Installation From Source
-
-### Linux
-
+Installation From Source
+Linux
 Clone the repository:
 
-```bash
 git clone https://github.com/Pavn31/GhostFiles.git
 cd GhostFiles
-```
-
 Create a virtual environment:
 
-```bash
 python -m venv .venv
-```
-
 Activate it:
 
-```bash
 source .venv/bin/activate
-```
-
 Install dependencies:
 
-```bash
 pip install -r requirements.txt
-```
-
 Run the application:
 
-```bash
 python main.py
-```
-
-### Windows
-
+Windows
 Clone the repository:
 
-```bash
 git clone https://github.com/Pavn31/GhostFiles.git
 cd GhostFiles
-```
-
 Create a virtual environment:
 
-```bash
 py -m venv .venv
-```
-
 Activate it:
 
-```bash
 .venv\Scripts\activate
-```
-
 Install dependencies:
 
-```bash
 pip install -r requirements.txt
-```
-
 Run:
 
-```bash
 python main.py
-```
+Requirements
+Runtime
+Linux
 
----
+Linux distribution
 
-## Requirements
+Python 3.x
 
-### Runtime
+PySide6
 
-**Linux**
+gio recommended for Trash integration
 
-- Linux distribution
-- Python 3.x
-- PySide6
-- `gio` recommended for Trash integration
+Windows
 
-**Windows**
+Windows 10 or newer
 
-- Windows 10 or newer
-- Python 3.x
-- PySide6
-- send2trash
+Python 3.x
 
-### Dependencies
+PySide6
 
-`requirements.txt`:
+send2trash
 
-```text
+Dependencies
+requirements.txt:
+
 PySide6
 send2trash
-```
-
----
-
-## Building From Source
-
-### Linux
-
+Building From Source
+Linux
 Install PyInstaller:
 
-```bash
 pip install pyinstaller
-```
-
 Build:
 
-```bash
 pyinstaller --noconfirm --clean --windowed --name GhostFiles main.py
-```
-
 The packaged application will be created at:
 
-```text
 dist/GhostFiles/
-```
-
 Structure:
 
-```text
 dist/
 └── GhostFiles/
     ├── GhostFiles
     └── _internal/
-```
-
-### Windows
-
+Windows
 Install dependencies:
 
-```bash
 pip install -r requirements.txt
 pip install pyinstaller
-```
-
 Build:
 
-```bash
 pyinstaller --noconfirm --clean --windowed --name GhostFiles main.py
-```
-
 Output:
 
-```text
 dist/
 └── GhostFiles/
     ├── GhostFiles.exe
     └── _internal/
-```
-
----
-
-## Automated Windows Builds
-
+Automated Windows Builds
 Ghost Files uses GitHub Actions to build the Windows version.
 
 Workflow:
 
-```text
 .github/
 └── workflows/
     └── build-windows.yml
-```
-
 The workflow runs on a Windows runner and:
 
-1. Checks out the repository.
-2. Installs Python.
-3. Installs project dependencies.
-4. Installs PyInstaller.
-5. Builds the Windows application.
-6. Uploads the Windows build as an artifact.
+Checks out the repository.
+
+Installs Python.
+
+Installs project dependencies.
+
+Installs PyInstaller.
+
+Builds the Windows application.
+
+Uploads the Windows build as an artifact.
 
 This allows the Windows executable to be built without requiring a local Windows development machine.
 
----
+Linux Desktop Launcher
+Ghost Files can be added to the Linux application menu using the built-in desktop integration.
 
-## Linux Desktop Launcher
+The application can create a desktop entry from:
 
-Ghost Files can be added to the Linux application menu using a `.desktop` launcher.
+Settings → Desktop Integration
+The generated launcher uses the installed Ghost Files executable and application icon.
 
-Example:
-
-```ini
-[Desktop Entry]
-Name=Ghost Files
-Comment=Find and clean unnecessary files
-Exec=/home/USERNAME/GhostFiles/dist/GhostFiles/GhostFiles
-Icon=/home/USERNAME/GhostFiles/assets/ghost-files.png
-Terminal=false
-Type=Application
-Categories=Utility;
-StartupNotify=true
-```
-
-Replace `USERNAME` with your Linux username.
-
----
-
-## How It Works
-
-```text
-                    Selected Folder
-                           │
-                           ▼
-                      Scan Files
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-             ▼             ▼             ▼
-      Ghost Detection  Large Files  Duplicate Detection
-             │             │             │
-             │             │             ▼
-             │             │       Group By Size
-             │             │             │
-             │             │             ▼
-             │             │        SHA-256 Hash
-             │             │             │
-             └─────────────┼─────────────┘
-                           │
-                           ▼
-                    Results Dashboard
-                           │
-                           ▼
-                      Select File
-                           │
-                           ▼
-                    Move to Trash
-                           │
-                ┌──────────┴──────────┐
-                ▼                     ▼
-              Linux                 Windows
-                │                     │
-                ▼                     ▼
-          Linux Trash            Recycle Bin
-```
-
----
-
-## Detection Logic
-
-### Empty Files
-
+How It Works
+                     Selected Folder
+                            │
+                            ▼
+                       Scan Files
+                            │
+              ┌─────────────┼─────────────┐
+              │             │             │
+              ▼             ▼             ▼
+       Ghost Detection  Large Files  Duplicate Detection
+              │             │             │
+              │             │             ▼
+              │             │       Group By Size
+              │             │             │
+              │             │             ▼
+              │             │        SHA-256 Hash
+              │             │             │
+              └─────────────┼─────────────┘
+                            │
+                            ▼
+                     Results Dashboard
+                            │
+                            ▼
+                       Select File
+                            │
+                            ▼
+                     Move to Trash
+                            │
+                 ┌──────────┴──────────┐
+                 ▼                     ▼
+               Linux                 Windows
+                 │                     │
+                 ▼                     ▼
+           Linux Trash            Recycle Bin
+Detection Logic
+Empty Files
 Files with a size of:
 
-```text
 0 bytes
-```
-
 are classified as empty files.
 
-### Temporary Files
-
+Temporary Files
 Known temporary extensions are detected automatically:
 
-```text
 .tmp
 .bak
 .old
 .swp
-```
-
-### Suspicious Filenames
-
+Suspicious Filenames
 Files containing configured keywords such as:
 
-```text
 backup
 temp
 old
-```
-
 can be flagged.
 
-### Duplicate Files
+Cache Directories
+Configured cache directory names can be detected as cleanup candidates.
 
+Examples:
+
+__pycache__
+.cache
+node_modules
+.pytest_cache
+.mypy_cache
+Log Files
+Configured log extensions can be detected as cleanup candidates.
+
+Default example:
+
+.log
+Broken Symbolic Links
+Broken symbolic links can be detected without following them as normal files.
+
+Duplicate Files
 Duplicate detection follows this process:
 
-```text
 Files
  │
  ▼
@@ -549,155 +637,173 @@ Matching Hash?
  │
  ▼
 Duplicate Group
-```
-
 Files must have both:
 
-- Matching file size
-- Matching SHA-256 hash
+Matching file size
+
+Matching SHA-256 hash
 
 to be considered duplicates.
 
-### Large Files
+Large Files
+Files equal to or larger than the configured threshold are displayed in the Large Files section.
 
-Files equal to or larger than:
+Default:
 
-```text
-LARGE_FILE_SIZE
-```
-
-are displayed in the Large Files section.
-
-The current threshold is:
-
-```text
 100 MB
-```
-
----
-
-## Safety
-
+Safety
 Ghost Files moves selected files to the operating system's Trash or Recycle Bin rather than permanently deleting them.
 
 However, users should still review detected files before moving them.
 
-**Do not blindly remove files from system directories.**
+Do not blindly remove files from system directories.
 
 Ghost Files is intended primarily for user-selected folders and personal storage cleanup.
 
----
-
-## Project Structure
-
-```text
+Project Structure
 GhostFiles/
 ├── .github/
 │   └── workflows/
 │       └── build-windows.yml
 ├── assets/
-│   └── ghost-files.png
+│   ├── ghost-files.png
+│   └── Main-Dashboard.png
 ├── main.py
 ├── GhostFiles.spec
 ├── README.md
 ├── requirements.txt
 └── .gitignore
-```
-
 Generated directories such as:
 
-```text
 build/
 dist/
 .venv/
-```
-
 are excluded from Git.
 
----
+Release archives such as:
 
-## Tech Stack
+GhostFiles-Linux.tar.gz
+GhostFiles-Windows.zip
+are distributed through GitHub Releases rather than committed to the repository.
 
-| Technology | Purpose |
-|---|---|
-| Python | Application logic |
-| PySide6 | Desktop GUI |
-| pathlib | File system operations |
-| SHA-256 | Duplicate detection |
-| subprocess | Linux system integration |
-| send2trash | Trash / Recycle Bin integration |
-| PyInstaller | Application packaging |
-| GitHub Actions | Automated Windows builds |
+Tech Stack
+Technology	Purpose
+Python	Application logic
+PySide6	Desktop GUI
+pathlib	File system operations
+SHA-256	Duplicate detection
+subprocess	Linux system integration
+send2trash	Trash / Recycle Bin integration
+PyInstaller	Application packaging
+GitHub Actions	Automated Windows builds
+Current Status
+Version 1.1.0
 
----
+Status: Latest Public Release
 
-## Current Status
+Implemented
+Folder scanning
 
-**Version 1.0.0**
+Recursive scan controls
 
-**Status:** Initial Public Release
+Configurable detection thresholds
 
-### Implemented
+Scan exclusions
 
-- [x] Folder scanning
-- [x] Empty file detection
-- [x] Temporary file detection
-- [x] Suspicious filename detection
-- [x] Ghost file detection
-- [x] Duplicate detection
-- [x] SHA-256 duplicate verification
-- [x] Duplicate wasted-space calculation
-- [x] Large file detection
-- [x] Project health score
-- [x] File selection
-- [x] Linux Trash support
-- [x] Windows Recycle Bin support
-- [x] Automatic rescanning
-- [x] PyInstaller packaging
-- [x] Linux executable
-- [x] Windows executable
-- [x] GitHub Actions Windows build
-- [x] Desktop launcher support
-- [x] Custom application icon
-- [x] Public GitHub release
+Empty file detection
 
-### Roadmap
+Temporary file detection
 
+Suspicious filename detection
+
+Cache folder detection
+
+Log file detection
+
+Broken symbolic link detection
+
+Ghost file detection
+
+Duplicate detection
+
+SHA-256 duplicate verification
+
+Duplicate wasted-space calculation
+
+Large file detection
+
+File preview
+
+Sorting and filtering
+
+Scan history
+
+Storage analytics
+
+Improved project health score
+
+Configurable health-score weights
+
+File selection
+
+Linux Trash support
+
+Windows Recycle Bin support
+
+Automatic rescanning
+
+PyInstaller packaging
+
+Linux executable
+
+Windows executable
+
+GitHub Actions Windows build
+
+Linux desktop integration
+
+Windows desktop shortcut support
+
+Custom application icon
+
+Portable Linux packaging
+
+Portable Windows packaging
+
+Public GitHub release
+
+Roadmap
 Possible future improvements:
 
-- [ ] Configurable detection thresholds
-- [ ] Scan exclusions
-- [ ] Recursive scan controls
-- [ ] File preview
-- [ ] Sorting and filtering
-- [ ] Scan history
-- [ ] Storage analytics
-- [ ] Improved health scoring
-- [ ] More Linux desktop integration
-- [ ] Improved Windows integration
-- [ ] Portable packaging improvements
-- [ ] Installer packages
-- [ ] Additional cleanup categories
+Installer packages
 
----
+Additional cleanup categories
 
-## Contributing
+More advanced storage visualizations
 
+Further scanning performance improvements
+
+Expanded desktop integration
+
+Additional platform support
+
+Contributing
 Contributions, suggestions, and bug reports are welcome.
 
 When reporting a bug, include:
 
-- Operating system
-- Ghost Files version
-- Python version, if running from source
-- Steps to reproduce
-- Relevant error output
+Operating system
 
----
+Ghost Files version
 
+Python version, if running from source
 
-## Author
+Steps to reproduce
 
-**Pavan**
+Relevant error output
 
-GitHub: [https://github.com/Pavn31](https://github.com/Pavn31)
+Author
+Pavan
+
+GitHub: https://github.com/Pavn31
+
