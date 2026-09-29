@@ -19,31 +19,6 @@
 
 ---
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Dashboard](#dashboard)
-- [Supported Platforms](#supported-platforms)
-- [Requirements](#requirements)
-- [Running From Source](#running-from-source)
-- [Building](#building)
-- [Configuration](#configuration)
-- [How It Works](#how-it-works)
-- [Cleanup & Selection Workflow](#cleanup--selection-workflow)
-- [Desktop Integration](#desktop-integration)
-- [Project Structure](#project-structure)
-- [Technology Stack](#technology-stack)
-- [Releases](#releases)
-- [Roadmap](#roadmap)
-- [Safety](#safety)
-- [Development](#development)
-- [Contributing](#contributing)
-- [License](#license)
-- [Author](#author)
-
----
-
 ## Overview
 
 Ghost Files is a desktop utility that analyzes folders and identifies files and directories that may be unnecessary, duplicated, outdated, or consuming significant storage.
