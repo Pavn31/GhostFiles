@@ -1,3 +1,5 @@
+#   MAIN.PY
+
 import os
 import sys
 import json
@@ -59,13 +61,27 @@ DEFAULT_CONFIG = {
     "ghost_extensions": [".tmp", ".bak", ".old", ".swp"],
     "ghost_keywords": ["backup", "temp", "old"],
     "large_file_mb": 10,
-    "exclusions": [".git", "node_modules", "__pycache__", ".venv", "venv", ".cache", "Thumbs.db"],
+    "exclusions": [
+        ".git",
+        "node_modules",
+        "__pycache__",
+        ".venv",
+        "venv",
+        ".cache",
+        "Thumbs.db",
+    ],
     "recursive": True,
     "detect_cache": True,
     "detect_logs": True,
     "detect_empty_dirs": True,
     "detect_broken_links": True,
-    "cache_dir_names": ["__pycache__", ".cache", "node_modules", ".pytest_cache", ".mypy_cache"],
+    "cache_dir_names": [
+        "__pycache__",
+        ".cache",
+        "node_modules",
+        ".pytest_cache",
+        ".mypy_cache",
+    ],
     "log_extensions": [".log"],
     "health_weight_ghost": 1.0,
     "health_weight_duplicate": 1.5,
@@ -74,9 +90,30 @@ DEFAULT_CONFIG = {
 }
 
 TEXT_PREVIEW_EXTENSIONS = {
-    ".txt", ".md", ".py", ".json", ".yaml", ".yml", ".ini", ".cfg",
-    ".csv", ".log", ".xml", ".html", ".css", ".js", ".ts", ".sh",
-    ".c", ".cpp", ".h", ".java", ".rs", ".go", ".rb", ".toml",
+    ".txt",
+    ".md",
+    ".py",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".ini",
+    ".cfg",
+    ".csv",
+    ".log",
+    ".xml",
+    ".html",
+    ".css",
+    ".js",
+    ".ts",
+    ".sh",
+    ".c",
+    ".cpp",
+    ".h",
+    ".java",
+    ".rs",
+    ".go",
+    ".rb",
+    ".toml",
 }
 
 IMAGE_PREVIEW_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}
@@ -125,11 +162,11 @@ def save_history(history):
 def format_size(size):
     if size < 1024:
         return f"{size} B"
-    if size < 1024 ** 2:
+    if size < 1024**2:
         return f"{size / 1024:.1f} KB"
-    if size < 1024 ** 3:
+    if size < 1024**3:
         return f"{size / (1024 ** 2):.1f} MB"
-    if size < 1024 ** 4:
+    if size < 1024**4:
         return f"{size / (1024 ** 3):.1f} GB"
     return f"{size / (1024 ** 4):.1f} TB"
 
@@ -137,6 +174,7 @@ def format_size(size):
 # ============================================================
 # Settings Dialog
 # ============================================================
+
 
 class SettingsDialog(QDialog):
 
@@ -164,7 +202,9 @@ class SettingsDialog(QDialog):
         self.large_file_spin.setSuffix(" MB")
         form.addRow("Large file threshold:", self.large_file_spin)
 
-        self.ghost_ext_edit = QLineEdit(", ".join(self.config.get("ghost_extensions", [])))
+        self.ghost_ext_edit = QLineEdit(
+            ", ".join(self.config.get("ghost_extensions", []))
+        )
         form.addRow("Ghost extensions:", self.ghost_ext_edit)
 
         self.ghost_kw_edit = QLineEdit(", ".join(self.config.get("ghost_keywords", [])))
@@ -173,7 +213,9 @@ class SettingsDialog(QDialog):
         self.log_ext_edit = QLineEdit(", ".join(self.config.get("log_extensions", [])))
         form.addRow("Log file extensions:", self.log_ext_edit)
 
-        self.cache_dirs_edit = QLineEdit(", ".join(self.config.get("cache_dir_names", [])))
+        self.cache_dirs_edit = QLineEdit(
+            ", ".join(self.config.get("cache_dir_names", []))
+        )
         form.addRow("Cache folder names:", self.cache_dirs_edit)
 
         layout.addWidget(thresholds_box)
@@ -195,7 +237,9 @@ class SettingsDialog(QDialog):
         cat_layout.addWidget(self.detect_empty_check)
 
         self.detect_broken_check = QCheckBox("Detect broken symlinks")
-        self.detect_broken_check.setChecked(self.config.get("detect_broken_links", True))
+        self.detect_broken_check.setChecked(
+            self.config.get("detect_broken_links", True)
+        )
         cat_layout.addWidget(self.detect_broken_check)
 
         layout.addWidget(categories_box)
@@ -310,17 +354,27 @@ class SettingsDialog(QDialog):
     def result_config(self):
         config = dict(self.config)
         config["large_file_mb"] = self.large_file_spin.value()
-        config["ghost_extensions"] = [e.strip() for e in self.ghost_ext_edit.text().split(",") if e.strip()]
-        config["ghost_keywords"] = [k.strip() for k in self.ghost_kw_edit.text().split(",") if k.strip()]
-        config["log_extensions"] = [e.strip() for e in self.log_ext_edit.text().split(",") if e.strip()]
-        config["cache_dir_names"] = [c.strip() for c in self.cache_dirs_edit.text().split(",") if c.strip()]
+        config["ghost_extensions"] = [
+            e.strip() for e in self.ghost_ext_edit.text().split(",") if e.strip()
+        ]
+        config["ghost_keywords"] = [
+            k.strip() for k in self.ghost_kw_edit.text().split(",") if k.strip()
+        ]
+        config["log_extensions"] = [
+            e.strip() for e in self.log_ext_edit.text().split(",") if e.strip()
+        ]
+        config["cache_dir_names"] = [
+            c.strip() for c in self.cache_dirs_edit.text().split(",") if c.strip()
+        ]
         config["detect_cache"] = self.detect_cache_check.isChecked()
         config["detect_logs"] = self.detect_logs_check.isChecked()
         config["detect_empty_dirs"] = self.detect_empty_check.isChecked()
         config["detect_broken_links"] = self.detect_broken_check.isChecked()
         config["recursive"] = self.recursive_check.isChecked()
         config["notify_on_scan"] = self.notify_check.isChecked()
-        config["exclusions"] = [self.excl_list.item(i).text() for i in range(self.excl_list.count())]
+        config["exclusions"] = [
+            self.excl_list.item(i).text() for i in range(self.excl_list.count())
+        ]
         config["health_weight_ghost"] = self.w_ghost_spin.value()
         config["health_weight_duplicate"] = self.w_dup_spin.value()
         config["health_weight_large"] = self.w_large_spin.value()
@@ -330,6 +384,7 @@ class SettingsDialog(QDialog):
 # ============================================================
 # Desktop integration helpers
 # ============================================================
+
 
 def get_launch_target():
     """Best-effort path/command used to relaunch the app (frozen exe or script)."""
@@ -341,7 +396,9 @@ def get_launch_target():
 def install_linux_desktop_entry():
     try:
         apps_dir = Path.home() / ".local" / "share" / "applications"
-        icons_dir = Path.home() / ".local" / "share" / "icons" / "hicolor" / "256x256" / "apps"
+        icons_dir = (
+            Path.home() / ".local" / "share" / "icons" / "hicolor" / "256x256" / "apps"
+        )
         apps_dir.mkdir(parents=True, exist_ok=True)
         icons_dir.mkdir(parents=True, exist_ok=True)
 
@@ -423,7 +480,12 @@ def notify(title, message):
             )
         elif sys.platform == "darwin":
             script = f'display notification "{message}" with title "{title}"'
-            subprocess.run(["osascript", "-e", script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            subprocess.run(
+                ["osascript", "-e", script],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
         # Windows notifications are skipped here; the taskbar icon + status bar cover it.
     except FileNotFoundError:
         pass
@@ -445,8 +507,12 @@ def reveal_in_file_manager(path):
                 subprocess.run(["open", str(path)], check=False)
         else:
             try:
-                subprocess.run(["nautilus", "--select", str(path)], check=True,
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(
+                    ["nautilus", "--select", str(path)],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
             except (FileNotFoundError, subprocess.CalledProcessError):
                 subprocess.run(["xdg-open", str(target)], check=False)
     except Exception:
@@ -462,6 +528,7 @@ def reveal_in_file_manager(path):
 # QWidget — it only computes data and emits it via signals.
 # ============================================================
 
+
 class ScanWorker(QObject):
     finished = Signal(dict)
     error = Signal(str)
@@ -473,12 +540,16 @@ class ScanWorker(QObject):
         self.recursive = recursive
 
     def is_excluded(self, name, patterns):
-        return any(fnmatch.fnmatch(name, pattern) or name == pattern for pattern in patterns)
+        return any(
+            fnmatch.fnmatch(name, pattern) or name == pattern for pattern in patterns
+        )
 
     def walk(self, root, exclusions, recursive):
         if recursive:
             for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
-                dirnames[:] = [d for d in dirnames if not self.is_excluded(d, exclusions)]
+                dirnames[:] = [
+                    d for d in dirnames if not self.is_excluded(d, exclusions)
+                ]
                 yield dirpath, dirnames, filenames
         else:
             dirpath = str(root)
@@ -486,7 +557,11 @@ class ScanWorker(QObject):
                 entries = list(Path(root).iterdir())
             except OSError:
                 entries = []
-            dirnames = [e.name for e in entries if e.is_dir() and not self.is_excluded(e.name, exclusions)]
+            dirnames = [
+                e.name
+                for e in entries
+                if e.is_dir() and not self.is_excluded(e.name, exclusions)
+            ]
             filenames = [e.name for e in entries if not e.is_dir()]
             yield dirpath, dirnames, filenames
 
@@ -535,9 +610,7 @@ class ScanWorker(QObject):
 
         # Only files sharing an exact size can possibly be duplicates.
         candidates = [
-            file
-            for files in size_groups.values() if len(files) > 1
-            for file in files
+            file for files in size_groups.values() if len(files) > 1 for file in files
         ]
         if not candidates:
             return []
@@ -545,15 +618,15 @@ class ScanWorker(QObject):
         # Stage 1: tiny head/tail signature.
         quick_groups = defaultdict(list)
         with ThreadPoolExecutor(max_workers=workers) as pool:
-            for file, signature in zip(candidates, pool.map(self.quick_hash, candidates, chunksize=32)):
+            for file, signature in zip(
+                candidates, pool.map(self.quick_hash, candidates, chunksize=32)
+            ):
                 if signature is not None:
                     quick_groups[signature].append(file)
 
         # Stage 2: full hash only for actual quick-signature collisions.
         full_candidates = [
-            file
-            for group in quick_groups.values() if len(group) > 1
-            for file in group
+            file for group in quick_groups.values() if len(group) > 1 for file in group
         ]
         if not full_candidates:
             return []
@@ -592,7 +665,11 @@ class ScanWorker(QObject):
             for dirpath, dirnames, filenames in self.walk(path, exclusions, recursive):
                 dirpath_p = Path(dirpath)
 
-                if cfg.get("detect_empty_dirs", True) and not dirnames and not filenames:
+                if (
+                    cfg.get("detect_empty_dirs", True)
+                    and not dirnames
+                    and not filenames
+                ):
                     if dirpath_p != path:
                         empty_dirs.append(dirpath_p)
 
@@ -672,7 +749,8 @@ class ScanWorker(QObject):
                 large_ratio = len(large_files) / total_files
 
                 penalty = 100 * (
-                    (w_ghost * ghost_ratio + w_dup * dup_ratio + w_large * large_ratio) / total_weight
+                    (w_ghost * ghost_ratio + w_dup * dup_ratio + w_large * large_ratio)
+                    / total_weight
                 )
                 health_score = max(0, round(100 - penalty))
 
@@ -693,7 +771,9 @@ class ScanWorker(QObject):
 
             self.finished.emit(results)
 
-        except Exception as exc:  # noqa: BLE001 - surface any unexpected error to the UI
+        except (
+            Exception
+        ) as exc:  # noqa: BLE001 - surface any unexpected error to the UI
             self.error.emit(str(exc))
 
 
@@ -736,8 +816,8 @@ class GhostFiles(QMainWindow):
         self.setCentralWidget(central)
 
         main_layout = QVBoxLayout(central)
-        main_layout.setContentsMargins(45, 35, 45, 35)
-        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(42, 30, 42, 30)
+        main_layout.setSpacing(16)
 
         # --------------------------------------------------------
         # Header
@@ -746,22 +826,24 @@ class GhostFiles(QMainWindow):
         header = QHBoxLayout()
 
         title = QLabel("GHOST FILES")
-        title.setStyleSheet("QLabel { color: white; font-size: 30px; font-weight: bold; }")
+        title.setStyleSheet(
+            "QLabel { color: #f5f5f7; font-size: 28px; font-weight: 700; letter-spacing: 1px; }"
+        )
 
         self.recursive_check = QCheckBox("Recursive")
         self.recursive_check.setChecked(self.config.get("recursive", True))
         self.recursive_check.setStyleSheet("QCheckBox { color: #cccccc; }")
 
         self.settings_button = QPushButton("SETTINGS")
-        self.settings_button.setFixedSize(120, 45)
+        self.settings_button.setFixedSize(125, 44)
         self.settings_button.clicked.connect(self.open_settings)
 
         self.scan_button = QPushButton("SCAN FOLDER")
-        self.scan_button.setFixedSize(170, 45)
+        self.scan_button.setFixedSize(165, 44)
         self.scan_button.clicked.connect(self.select_folder)
 
         self.trash_button = QPushButton("MOVE TO TRASH")
-        self.trash_button.setFixedSize(170, 45)
+        self.trash_button.setFixedSize(165, 44)
         self.trash_button.clicked.connect(self.trash_selected)
 
         header.addWidget(title)
@@ -778,7 +860,9 @@ class GhostFiles(QMainWindow):
         # --------------------------------------------------------
 
         self.status = QLabel("Select a folder to scan")
-        self.status.setStyleSheet("QLabel { color: #888888; font-size: 14px; }")
+        self.status.setStyleSheet(
+            "QLabel { color: #8f8f9d; font-size: 13px; padding: 2px 4px; }"
+        )
         main_layout.addWidget(self.status)
 
         # --------------------------------------------------------
@@ -787,11 +871,15 @@ class GhostFiles(QMainWindow):
 
         self.health = QLabel("—")
         self.health.setAlignment(Qt.AlignCenter)
-        self.health.setStyleSheet("QLabel { color: white; font-size: 52px; font-weight: bold; }")
+        self.health.setStyleSheet(
+            "QLabel { color: #f4f4f6; font-size: 50px; font-weight: 700; }"
+        )
 
         health_label = QLabel("PROJECT HEALTH")
         health_label.setAlignment(Qt.AlignCenter)
-        health_label.setStyleSheet("QLabel { color: #777777; font-size: 12px; letter-spacing: 2px; }")
+        health_label.setStyleSheet(
+            "QLabel { color: #777777; font-size: 12px; letter-spacing: 2px; }"
+        )
 
         main_layout.addWidget(self.health)
         main_layout.addWidget(health_label)
@@ -822,17 +910,37 @@ class GhostFiles(QMainWindow):
         # --------------------------------------------------------
 
         tools_row = QHBoxLayout()
+        tools_row.setSpacing(8)
 
         self.filter_edit = QLineEdit()
         self.filter_edit.setPlaceholderText("Filter results by name…")
         self.filter_edit.textChanged.connect(self.apply_filter)
 
         self.sort_combo = QComboBox()
-        self.sort_combo.addItems(["Name (A-Z)", "Name (Z-A)", "Size (Large-Small)", "Size (Small-Large)"])
+        self.sort_combo.addItems(
+            ["Name (A-Z)", "Name (Z-A)", "Size (Large-Small)", "Size (Small-Large)"]
+        )
         self.sort_combo.currentIndexChanged.connect(self.render_all_tabs)
+
+        self.select_all_button = QPushButton("SELECT ALL")
+        self.select_all_button.setFixedSize(92, 34)
+        self.select_all_button.clicked.connect(self.select_all_results)
+
+        self.clear_selection_button = QPushButton("CLEAR")
+        self.clear_selection_button.setFixedSize(72, 34)
+        self.clear_selection_button.clicked.connect(self.clear_selection)
+
+        self.select_all_button.setStyleSheet(
+            "QPushButton { padding: 0 10px; font-size: 11px; }"
+        )
+        self.clear_selection_button.setStyleSheet(
+            "QPushButton { padding: 0 10px; font-size: 11px; }"
+        )
 
         tools_row.addWidget(self.filter_edit, 3)
         tools_row.addWidget(self.sort_combo, 1)
+        tools_row.addWidget(self.select_all_button)
+        tools_row.addWidget(self.clear_selection_button)
 
         main_layout.addLayout(tools_row)
 
@@ -858,8 +966,15 @@ class GhostFiles(QMainWindow):
 
         self.tabs.currentChanged.connect(lambda _: self.apply_filter())
 
-        for lw in (self.ghost_list, self.duplicate_list, self.large_list, self.empty_list):
+        for lw in (
+            self.ghost_list,
+            self.duplicate_list,
+            self.large_list,
+            self.empty_list,
+        ):
             lw.itemSelectionChanged.connect(self.update_preview)
+            lw.itemSelectionChanged.connect(self.update_selection_status)
+            lw.itemChanged.connect(self.update_selection_status)
             lw.setContextMenuPolicy(Qt.CustomContextMenu)
             lw.customContextMenuRequested.connect(self.show_context_menu)
 
@@ -868,7 +983,7 @@ class GhostFiles(QMainWindow):
         # Preview panel
         self.preview_panel = QFrame()
         self.preview_panel.setStyleSheet(
-            "QFrame { background-color: #111117; border: 1px solid #292934; border-radius: 10px; }"
+            "QFrame { background-color: #121218; border: 1px solid #2b2b36; border-radius: 12px; }"
         )
         preview_layout = QVBoxLayout(self.preview_panel)
 
@@ -888,7 +1003,12 @@ class GhostFiles(QMainWindow):
         self.preview_info.setWordWrap(True)
         self.preview_info.setStyleSheet("QLabel { color: #999999; font-size: 12px; }")
 
-        preview_layout.addWidget(QLabel("PREVIEW", styleSheet="color:#777777; font-size:11px; letter-spacing:2px;"))
+        preview_layout.addWidget(
+            QLabel(
+                "PREVIEW",
+                styleSheet="color:#777777; font-size:11px; letter-spacing:2px;",
+            )
+        )
         preview_layout.addWidget(self.preview_image)
         preview_layout.addWidget(self.preview_text)
         preview_layout.addWidget(self.preview_info)
@@ -907,26 +1027,209 @@ class GhostFiles(QMainWindow):
         # --------------------------------------------------------
 
         self.setStyleSheet("""
-            QMainWindow { background-color: #0b0b0f; }
+            QMainWindow {
+                background-color: #0a0a0e;
+            }
+
+            QWidget {
+                font-family: "Inter", "Noto Sans", sans-serif;
+            }
+
             QPushButton {
-                background-color: #191922; color: white; border: 1px solid #444455;
-                border-radius: 9px; font-size: 13px; font-weight: bold;
+                background-color: #17171f;
+                color: #eeeeF2;
+                border: 1px solid #363642;
+                border-radius: 9px;
+                padding: 0 16px;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.3px;
             }
-            QPushButton:hover { background-color: #242430; }
-            QPushButton:pressed { background-color: #30303d; }
-            QPushButton:disabled { color: #666666; border-color: #333340; }
-            QTabWidget::pane { border: 1px solid #292934; border-radius: 10px; background-color: #111117; }
-            QTabBar::tab { background-color: #111117; color: #777777; padding: 10px 22px; border: none; }
-            QTabBar::tab:selected { color: white; }
+
+            QPushButton:hover {
+                background-color: #20202a;
+                border-color: #50505e;
+            }
+
+            QPushButton:pressed {
+                background-color: #292934;
+            }
+
+            QPushButton:disabled {
+                color: #5f5f69;
+                border-color: #292932;
+                background-color: #111116;
+            }
+
+            QCheckBox {
+                color: #a9a9b4;
+                spacing: 7px;
+                font-size: 12px;
+            }
+
+            QCheckBox::indicator {
+                width: 14px;
+                height: 14px;
+            }
+
+            QTabWidget::pane {
+                border: 1px solid #292934;
+                border-radius: 12px;
+                background-color: #101016;
+                top: -1px;
+            }
+
+            QTabBar {
+                background-color: #0d0d12;
+            }
+
+            QTabBar::tab {
+                background-color: #0d0d12;
+                color: #777783;
+                padding: 10px 20px;
+                margin-right: 2px;
+                border: none;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                font-size: 12px;
+            }
+
+            QTabBar::tab:hover {
+                color: #bcbcc5;
+                background-color: #15151c;
+            }
+
+            QTabBar::tab:selected {
+                color: #f2f2f5;
+                background-color: #15151c;
+            }
+
             QLineEdit, QComboBox, QSpinBox {
-                background-color: #191922; color: white; border: 1px solid #444455;
-                border-radius: 6px; padding: 6px; font-size: 13px;
+                background-color: #15151c;
+                color: #ededf1;
+                border: 1px solid #34343f;
+                border-radius: 8px;
+                padding: 7px 10px;
+                font-size: 12px;
+                selection-background-color: #3a3a48;
             }
+
+            QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+                border-color: #555563;
+            }
+
+            QComboBox::drop-down {
+                border: none;
+                width: 24px;
+            }
+
             QGroupBox {
-                color: #cccccc; border: 1px solid #292934; border-radius: 8px;
-                margin-top: 12px; padding-top: 10px; font-weight: bold;
+                color: #c9c9d0;
+                border: 1px solid #292934;
+                border-radius: 10px;
+                margin-top: 12px;
+                padding-top: 12px;
+                font-weight: 700;
             }
-            QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
+
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+
+            QListWidget {
+                background-color: #101016;
+                color: #d5d5db;
+                border: none;
+                padding: 10px;
+                font-size: 12px;
+                outline: none;
+            }
+
+            QListWidget::item {
+                padding: 8px 9px;
+                border-radius: 6px;
+                margin: 1px 0;
+            }
+
+            QListWidget::item:hover {
+                background-color: #181820;
+            }
+
+            QListWidget::item:selected {
+                background-color: #292934;
+                color: #ffffff;
+            }
+
+            QListWidget::indicator {
+                width: 15px;
+                height: 15px;
+                margin-right: 8px;
+            }
+
+            QListWidget::indicator:unchecked {
+                border: 1px solid #555562;
+                border-radius: 4px;
+                background-color: #15151c;
+            }
+
+            QListWidget::indicator:unchecked:hover {
+                border-color: #777783;
+                background-color: #1d1d26;
+            }
+
+            QListWidget::indicator:checked {
+                border: 1px solid #8b8b98;
+                border-radius: 4px;
+                background-color: #777783;
+            }
+
+            QListWidget::indicator:checked:hover {
+                background-color: #8d8d99;
+            }
+
+            QScrollBar:vertical {
+                background: #0d0d12;
+                width: 10px;
+                margin: 4px 2px 4px 0;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #353540;
+                border-radius: 5px;
+                min-height: 28px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #4a4a56;
+            }
+
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                height: 0;
+            }
+
+            QScrollBar:horizontal {
+                background: #0d0d12;
+                height: 10px;
+                margin: 0 4px 2px 4px;
+            }
+
+            QScrollBar::handle:horizontal {
+                background: #353540;
+                border-radius: 5px;
+                min-width: 28px;
+            }
+
+            QScrollBar::handle:horizontal:hover {
+                background: #4a4a56;
+            }
+
+            QScrollBar::add-line:horizontal,
+            QScrollBar::sub-line:horizontal {
+                width: 0;
+            }
         """)
 
         self.render_history_tab()
@@ -934,7 +1237,10 @@ class GhostFiles(QMainWindow):
         if sys.platform.startswith("win"):
             try:
                 import ctypes
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ghostfiles.app.1.0")
+
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                    "ghostfiles.app.1.0"
+                )
             except Exception:
                 pass
 
@@ -944,12 +1250,14 @@ class GhostFiles(QMainWindow):
 
     def create_card(self, name):
         card = QFrame()
-        card.setFixedHeight(90)
+        card.setFixedHeight(84)
         layout = QVBoxLayout(card)
 
         value = QLabel("0")
         value.setAlignment(Qt.AlignCenter)
-        value.setStyleSheet("QLabel { color: white; font-size: 26px; font-weight: bold; }")
+        value.setStyleSheet(
+            "QLabel { color: white; font-size: 26px; font-weight: bold; }"
+        )
 
         label = QLabel(name)
         label.setAlignment(Qt.AlignCenter)
@@ -959,14 +1267,14 @@ class GhostFiles(QMainWindow):
         layout.addWidget(label)
 
         card.setStyleSheet(
-            "QFrame { background-color: #111117; border: 1px solid #292934; border-radius: 10px; }"
+            "QFrame { background-color: #101016; border: 1px solid #292934; border-radius: 12px; }"
         )
         card.value_label = value
         return card
 
     def create_list(self):
         widget = QListWidget()
-        widget.setSelectionMode(QListWidget.SingleSelection)
+        widget.setSelectionMode(QListWidget.ExtendedSelection)
         widget.setStyleSheet("""
             QListWidget { background-color: #111117; color: #dddddd; border: none; padding: 12px; font-size: 13px; }
             QListWidget::item { padding: 7px; }
@@ -1002,6 +1310,7 @@ class GhostFiles(QMainWindow):
             if sys.platform.startswith("win"):
                 try:
                     from send2trash import send2trash
+
                     send2trash(str(file_path))
                     return True
                 except ImportError:
@@ -1013,7 +1322,10 @@ class GhostFiles(QMainWindow):
                 try:
                     subprocess.run(
                         ["gio", "trash", str(file_path)],
-                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+                        check=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.PIPE,
+                        text=True,
                     )
                     return True
                 except FileNotFoundError:
@@ -1040,9 +1352,15 @@ class GhostFiles(QMainWindow):
 
             elif sys.platform == "darwin":
                 try:
-                    script = f'tell application "Finder" to delete POSIX file "{file_path}"'
-                    subprocess.run(["osascript", "-e", script], check=True,
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    script = (
+                        f'tell application "Finder" to delete POSIX file "{file_path}"'
+                    )
+                    subprocess.run(
+                        ["osascript", "-e", script],
+                        check=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
                     return True
                 except (FileNotFoundError, subprocess.CalledProcessError):
                     return False
@@ -1054,36 +1372,94 @@ class GhostFiles(QMainWindow):
 
     def trash_selected(self):
         current_tab = self.tabs.currentWidget()
-        if current_tab is None or current_tab not in (
-            self.ghost_list, self.duplicate_list, self.large_list, self.empty_list
-        ):
-            self.status.setText("Select a file in Ghosts, Duplicates, Large Files or Empty Dirs")
+        valid_tabs = (
+            self.ghost_list,
+            self.duplicate_list,
+            self.large_list,
+            self.empty_list,
+        )
+
+        if current_tab is None or current_tab not in valid_tabs:
+            self.status.setText(
+                "Select files in Ghosts, Duplicates, Large Files or Empty Dirs"
+            )
             return
 
         selected = current_tab.selectedItems()
         if not selected:
-            self.status.setText("Select a file first")
+            self.status.setText("Select at least one file first")
             return
 
-        item = selected[0]
-        file_path = item.data(Qt.UserRole)
-        if not file_path:
-            self.status.setText("Select an actual file")
+        file_paths = []
+        seen = set()
+
+        for item in selected:
+            file_path = item.data(Qt.UserRole)
+            if not file_path:
+                continue
+
+            path = Path(file_path)
+            path_key = str(path)
+
+            if path_key in seen:
+                continue
+
+            seen.add(path_key)
+
+            if path.exists():
+                file_paths.append(path)
+
+        if not file_paths:
+            self.status.setText("None of the selected files still exist")
             return
 
-        file_path = Path(file_path)
-        if not file_path.exists():
-            self.status.setText("File no longer exists")
+        total_size = 0
+        for path in file_paths:
+            try:
+                if path.is_file():
+                    total_size += path.stat().st_size
+            except OSError:
+                continue
+
+        size_text = format_size(total_size)
+
+        confirm = QMessageBox(self)
+        confirm.setWindowTitle("Move to Trash")
+        confirm.setIcon(QMessageBox.Warning)
+        confirm.setText(f"Move {len(file_paths)} selected item(s) to Trash?")
+        confirm.setInformativeText(
+            f"This will free approximately {size_text}.\n\n"
+            "You can restore items later from your system Trash."
+        )
+
+        cancel_button = confirm.addButton("Cancel", QMessageBox.RejectRole)
+        trash_button = confirm.addButton("Move to Trash", QMessageBox.AcceptRole)
+        confirm.setDefaultButton(cancel_button)
+
+        confirm.exec()
+
+        if confirm.clickedButton() != trash_button:
+            self.status.setText("Trash operation cancelled")
             return
 
-        if self.move_to_trash(file_path):
-            item.setText(f"[MOVED TO TRASH]  {file_path}")
-            item.setData(Qt.UserRole, None)
-            self.status.setText(f"Moved to Trash: {file_path.name}")
-            if self.current_folder:
-                self.scan_folder(self.current_folder, preserve_status=True)
+        moved = 0
+        failed = []
+
+        for file_path in file_paths:
+            if self.move_to_trash(file_path):
+                moved += 1
+            else:
+                failed.append(file_path.name)
+
+        if moved and self.current_folder:
+            self.scan_folder(self.current_folder, preserve_status=True)
+
+        if failed:
+            self.status.setText(
+                f"Moved {moved} file(s) to Trash • Failed: {len(failed)}"
+            )
         else:
-            self.status.setText(f"Could not move to Trash: {file_path.name}")
+            self.status.setText(f"Moved {moved} file(s) to Trash")
 
     # ============================================================
     # Context menu
@@ -1150,7 +1526,9 @@ class GhostFiles(QMainWindow):
             size = "?"
             modified = "?"
 
-        self.preview_info.setText(f"{path.name}\n{path}\n\nSize: {size}\nModified: {modified}")
+        self.preview_info.setText(
+            f"{path.name}\n{path}\n\nSize: {size}\nModified: {modified}"
+        )
 
         if ext in IMAGE_PREVIEW_EXTENSIONS:
             pixmap = QPixmap(str(path))
@@ -1280,20 +1658,25 @@ class GhostFiles(QMainWindow):
         # History
         # --------------------------------------------------------
 
-        self.history.append({
-            "folder": str(path),
-            "timestamp": datetime.now().isoformat(timespec="seconds"),
-            "total_files": results["total_files"],
-            "ghosts": len(results["ghost_files"]),
-            "duplicates": results["duplicate_count"],
-            "large_files": len(results["large_files"]),
-            "health_score": results["health_score"],
-        })
+        self.history.append(
+            {
+                "folder": str(path),
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
+                "total_files": results["total_files"],
+                "ghosts": len(results["ghost_files"]),
+                "duplicates": results["duplicate_count"],
+                "large_files": len(results["large_files"]),
+                "health_score": results["health_score"],
+            }
+        )
         save_history(self.history)
         self.render_history_tab()
 
         if self.config.get("notify_on_scan", True) and not preserve_status:
-            notify("Ghost Files", f"Scan complete: health score {results['health_score']} for {path.name}")
+            notify(
+                "Ghost Files",
+                f"Scan complete: health score {results['health_score']} for {path.name}",
+            )
 
         self.scan_button.setEnabled(True)
         self.scan_button.setText("SCAN FOLDER")
@@ -1318,13 +1701,62 @@ class GhostFiles(QMainWindow):
         except OSError:
             return 0
 
+    def _capture_tab_selections(self):
+        selections = {}
+
+        for list_widget in (
+            self.ghost_list,
+            self.duplicate_list,
+            self.large_list,
+            self.empty_list,
+        ):
+            selections[list_widget] = {
+                str(path) for path in self.get_selected_files(list_widget)
+            }
+
+        return selections
+
+    def _restore_tab_selections(self, selections):
+        for list_widget, selected_paths in selections.items():
+            if not selected_paths:
+                continue
+
+            list_widget.blockSignals(True)
+
+            try:
+                for i in range(list_widget.count()):
+                    item = list_widget.item(i)
+                    file_path = item.data(Qt.UserRole)
+
+                    if file_path and str(file_path) in selected_paths:
+                        item.setCheckState(Qt.Checked)
+            finally:
+                list_widget.blockSignals(False)
+
     def render_all_tabs(self):
+        selections = self._capture_tab_selections()
+
         self.render_ghost_tab()
         self.render_duplicate_tab()
         self.render_large_tab()
         self.render_empty_tab()
         self.render_analytics_tab()
+
+        self._restore_tab_selections(selections)
         self.apply_filter()
+        self.update_selection_status()
+
+    def create_file_item(self, text, file_path):
+        item = QListWidgetItem(text)
+        item.setData(Qt.UserRole, str(file_path))
+        item.setFlags(
+            item.flags()
+            | Qt.ItemIsSelectable
+            | Qt.ItemIsEnabled
+            | Qt.ItemIsUserCheckable
+        )
+        item.setCheckState(Qt.Unchecked)
+        return item
 
     def render_ghost_tab(self):
         self.ghost_list.clear()
@@ -1339,8 +1771,7 @@ class GhostFiles(QMainWindow):
 
         for file, _size in entries:
             reason = reasons.get(file, "?")
-            item = QListWidgetItem(f"[{reason}]  {file}")
-            item.setData(Qt.UserRole, str(file))
+            item = self.create_file_item(f"[{reason}]  {file}", file)
             self.ghost_list.addItem(item)
 
     def render_duplicate_tab(self):
@@ -1366,9 +1797,7 @@ class GhostFiles(QMainWindow):
             self.duplicate_list.addItem(heading)
 
             for file in group:
-                item = QListWidgetItem(f"    {file}")
-                item.setData(Qt.UserRole, str(file))
-                item.setFlags(item.flags() | Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+                item = self.create_file_item(f"    {file}", file)
                 self.duplicate_list.addItem(item)
 
             spacer = QListWidgetItem("")
@@ -1386,8 +1815,7 @@ class GhostFiles(QMainWindow):
             return
 
         for file, size in entries:
-            item = QListWidgetItem(f"{format_size(size)}   {file}")
-            item.setData(Qt.UserRole, str(file))
+            item = self.create_file_item(f"{format_size(size)}   {file}", file)
             self.large_list.addItem(item)
 
     def render_empty_tab(self):
@@ -1400,8 +1828,7 @@ class GhostFiles(QMainWindow):
             return
 
         for d in dirs:
-            item = QListWidgetItem(f"[EMPTY DIR]  {d}")
-            item.setData(Qt.UserRole, str(d))
+            item = self.create_file_item(f"[EMPTY DIR]  {d}", d)
             self.empty_list.addItem(item)
 
     def render_analytics_tab(self):
@@ -1450,6 +1877,126 @@ class GhostFiles(QMainWindow):
             self.history_list.addItem(item)
 
     # ============================================================
+    # Selection
+    # ============================================================
+
+    def get_selected_files(self, list_widget=None):
+        if list_widget is None:
+            list_widget = self.tabs.currentWidget()
+
+        valid_tabs = (
+            self.ghost_list,
+            self.duplicate_list,
+            self.large_list,
+            self.empty_list,
+        )
+
+        if list_widget not in valid_tabs:
+            return []
+
+        files = []
+        seen = set()
+
+        for i in range(list_widget.count()):
+            item = list_widget.item(i)
+
+            if item.checkState() != Qt.Checked:
+                continue
+
+            file_path = item.data(Qt.UserRole)
+
+            if not file_path:
+                continue
+
+            path = Path(file_path)
+            key = str(path)
+
+            if key in seen:
+                continue
+
+            seen.add(key)
+            files.append(path)
+
+        return files
+
+    def update_selection_status(self):
+        current = self.tabs.currentWidget()
+        selected_files = self.get_selected_files(current)
+
+        if not selected_files:
+            return
+
+        total_size = 0
+
+        for path in selected_files:
+            try:
+                if path.exists() and path.is_file():
+                    total_size += path.stat().st_size
+                elif path.exists() and path.is_dir():
+                    # Empty directories normally have negligible storage,
+                    # but keep their selection represented in the count.
+                    total_size += 0
+            except OSError:
+                continue
+
+        self.status.setText(
+            f"Selected {len(selected_files)} file(s) • {format_size(total_size)}"
+        )
+
+    def select_all_results(self):
+        current = self.tabs.currentWidget()
+        valid_tabs = (
+            self.ghost_list,
+            self.duplicate_list,
+            self.large_list,
+            self.empty_list,
+        )
+
+        if current not in valid_tabs:
+            self.status.setText(
+                "Select All is available in Ghosts, Duplicates, Large Files or Empty Dirs"
+            )
+            return
+
+        current.blockSignals(True)
+
+        try:
+            for i in range(current.count()):
+                item = current.item(i)
+
+                if item.isHidden():
+                    continue
+
+                if item.data(Qt.UserRole):
+                    item.setCheckState(Qt.Checked)
+        finally:
+            current.blockSignals(False)
+
+        self.update_selection_status()
+
+        selected_count = len(self.get_selected_files(current))
+        if selected_count == 0:
+            self.status.setText("No selectable files in this tab")
+
+    def clear_selection(self):
+        current = self.tabs.currentWidget()
+
+        if current is None:
+            return
+
+        current.blockSignals(True)
+
+        try:
+            for i in range(current.count()):
+                item = current.item(i)
+                if item.data(Qt.UserRole):
+                    item.setCheckState(Qt.Unchecked)
+        finally:
+            current.blockSignals(False)
+
+        self.status.setText("Selection cleared")
+
+    # ============================================================
     # Filtering
     # ============================================================
 
@@ -1466,6 +2013,7 @@ class GhostFiles(QMainWindow):
 # ============================================================
 # Application
 # ============================================================
+
 
 def main():
     app = QApplication(sys.argv)
