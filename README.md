@@ -1,4 +1,4 @@
-<h1 align="center">👻 Ghost Files</h1>
+<h1 align="center">Ghost Files</h1>
 
 <p align="center">
   <img src="assets/ghost-files.png" alt="Ghost Files Logo" width="250">
